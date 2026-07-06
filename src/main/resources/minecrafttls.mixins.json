@@ -1,0 +1,21 @@
+{
+  "required": true,
+  "minVersion": "0.8",
+  "package": "arisa.minecrafttls.mixin",
+  "compatibilityLevel": "JAVA_21",
+  "mixins": [
+    "ServerConnectionListenerMixin"
+  ],
+  "client": [
+    "ConnectionMixin",
+    "ServerDataMixin",
+    "ServerEditScreenMixin",
+    "ConnectScreenMixin"
+  ],
+  "injectors": {
+    "defaultRequire": 1
+  },
+  "overwrites": {
+    "requireAnnotations": true
+  }
+}
