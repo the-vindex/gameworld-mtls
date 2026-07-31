@@ -25,10 +25,10 @@ public class ConnectionMixin {
 
     @Inject(method = "<init>", at = @At("RETURN"))
     private void onConstruct(PacketFlow packetFlow, CallbackInfo ci) {
-        // Read the ThreadLocal set by the thread initiating the connection
         ServerData data = mTLSContext.CONNECTING_SERVER.get();
         if (data != null) {
             this.mtls$attachedServer = data;
+            mTLSContext.CONNECTING_SERVER.remove();
         }
     }
 
