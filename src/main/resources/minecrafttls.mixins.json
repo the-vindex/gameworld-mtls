@@ -4,13 +4,14 @@
   "package": "arisa.minecrafttls.mixin",
   "compatibilityLevel": "JAVA_21",
   "mixins": [
-    "ServerConnectionListenerMixin"
+    "ServerConnectionListenerMixin",
+    "VanillaEncryptionMixin"
   ],
   "client": [
     "ConnectionMixin",
+    "ConnectScreenMixin",
     "ServerDataMixin",
-    "ServerEditScreenMixin",
-    "ConnectScreenMixin"
+    "ServerEditScreenMixin"
   ],
   "injectors": {
     "defaultRequire": 1
