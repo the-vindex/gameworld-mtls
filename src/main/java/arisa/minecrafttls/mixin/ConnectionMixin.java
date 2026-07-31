@@ -1,13 +1,15 @@
 package arisa.minecrafttls.mixin;
 
 import arisa.minecrafttls.ImTLSServerData;
-import arisa.minecrafttls.mTLSStorage;
+import arisa.minecrafttls.mTLSContext;
 import io.netty.channel.ChannelHandlerContext;
 import io.netty.handler.ssl.SslContext;
 import io.netty.handler.ssl.SslContextBuilder;
 import net.minecraft.client.multiplayer.ServerData;
 import net.minecraft.network.Connection;
+import net.minecraft.network.protocol.PacketFlow;
 import org.spongepowered.asm.mixin.Mixin;
+import org.spongepowered.asm.mixin.Unique;
 import org.spongepowered.asm.mixin.injection.At;
 import org.spongepowered.asm.mixin.injection.Inject;
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
@@ -18,10 +20,21 @@ import static arisa.minecrafttls.MinecraftTLS.LOGGER;
 
 @Mixin(Connection.class)
 public class ConnectionMixin {
+    @Unique
+    private ServerData mtls$attachedServer;
+
+    @Inject(method = "<init>", at = @At("RETURN"))
+    private void onConstruct(PacketFlow packetFlow, CallbackInfo ci) {
+        // Read the ThreadLocal set by the thread initiating the connection
+        ServerData data = mTLSContext.CONNECTING_SERVER.get();
+        if (data != null) {
+            this.mtls$attachedServer = data;
+        }
+    }
 
     @Inject(method = "channelActive", at = @At("HEAD"))
     private void onChannelActive(ChannelHandlerContext context, CallbackInfo ci) {
-        ServerData activeServer = mTLSStorage.currentServer;
+        ServerData activeServer = this.mtls$attachedServer;
 
         if (activeServer != null) {
             ImTLSServerData mtlsData = (ImTLSServerData) activeServer;

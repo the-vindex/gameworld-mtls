@@ -1,6 +1,6 @@
 package arisa.minecrafttls.mixin;
 
-import arisa.minecrafttls.mTLSStorage;
+import arisa.minecrafttls.mTLSContext;
 import net.minecraft.client.multiplayer.ServerData;
 import net.minecraft.client.multiplayer.ServerStatusPinger;
 import org.spongepowered.asm.mixin.Mixin;
@@ -11,8 +11,12 @@ import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
 @Mixin(ServerStatusPinger.class)
 public class ServerStatusPingerMixin {
     @Inject(method = "pingServer", at = @At("HEAD"))
-    private void onPingServer(ServerData serverData, Runnable runnable, Runnable runnable2, CallbackInfo ci) {
-        // Set currentServer so ConnectionMixin knows which certs to use during the ping connection
-        mTLSStorage.currentServer = serverData;
+    private void onPingServerHead(ServerData serverData, Runnable runnable, Runnable runnable2, CallbackInfo ci) {
+        mTLSContext.CONNECTING_SERVER.set(serverData);
+    }
+
+    @Inject(method = "pingServer", at = @At("TAIL"))
+    private void onPingServerTail(ServerData serverData, Runnable runnable, Runnable runnable2, CallbackInfo ci) {
+        mTLSContext.CONNECTING_SERVER.remove();
     }
 }
