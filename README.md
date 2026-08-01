@@ -24,13 +24,12 @@ Place your certificates in `config/mtls_server/`:
 
 Configure mTLS settings directly in the server edit screen:
 
-![mTLS Server Config Screen](https://cdn.modrinth.com/data/cached_images/340ac3d2896bbf6a664f0cc4e476a0a9489f17f4_0.webp)
-
-![mTLS Server Connection Details](https://cdn.modrinth.com/data/cached_images/dac076f4e08c6c503121b6cb6823a3089269b8cf_0.webp)
+![mTLS Server Config Screen](https://cdn.modrinth.com/data/cached_images/578bdc0240a01e828a37cdb9745ae4afeb6fa733.png)
+![mTLS Server Connection Details](https://cdn.modrinth.com/data/cached_images/c898a5994df519261cc53cbd53b173747c2fd16f.png)
 
 ---
 
 ## 📌 Versions
 
-* **Supported:** NeoForge 1.21.1
+* **Supported:** NeoForge 1.21.1, 26.2
 * **Planned:** Fabric & newer/older MC versions
