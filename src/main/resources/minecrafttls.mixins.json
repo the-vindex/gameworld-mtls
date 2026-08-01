@@ -8,11 +8,11 @@
     "VanillaEncryptionMixin"
   ],
   "client": [
-    "ServerStatusPingerMixin",
     "ConnectionMixin",
     "ConnectScreenMixin",
     "ServerDataMixin",
-    "ServerEditScreenMixin"
+    "ServerEditScreenMixin",
+    "ServerStatusPingerMixin"
   ],
   "injectors": {
     "defaultRequire": 1

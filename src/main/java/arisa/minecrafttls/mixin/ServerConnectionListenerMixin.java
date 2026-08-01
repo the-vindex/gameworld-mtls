@@ -21,8 +21,56 @@ import static arisa.minecrafttls.MinecraftTLS.LOGGER;
 
 @Mixin(ServerConnectionListener.class)
 public class ServerConnectionListenerMixin {
+
+    // Cache reflection method once to avoid reflection overhead on every connection
     @Unique
-    private static boolean mtls$hasLoggedState = false;
+    private static final Method mtls$INIT_CHANNEL_METHOD;
+    @Unique
+    private static SslContext mtls$cachedSslContext = null;
+    @Unique
+    private static boolean mtls$isInitialized = false;
+
+    static {
+        try {
+            mtls$INIT_CHANNEL_METHOD = ChannelInitializer.class.getDeclaredMethod("initChannel", Channel.class);
+            mtls$INIT_CHANNEL_METHOD.setAccessible(true);
+        } catch (NoSuchMethodException e) {
+            throw new RuntimeException("[mTLS] Failed to reflectively access ChannelInitializer#initChannel", e);
+        }
+    }
+
+    @Unique
+    private static synchronized SslContext mtls$getOrBuildSslContext() {
+        if (mtls$isInitialized) {
+            return mtls$cachedSslContext;
+        }
+
+        mtls$isInitialized = true;
+        File dir = new File("config/mtls_server");
+        File ca = new File(dir, "ca.crt");
+        File cert = new File(dir, "server.crt");
+        File key = new File(dir, "server.key");
+
+        if (ca.exists() && cert.exists() && key.exists()) {
+            try {
+                mtls$cachedSslContext = SslContextBuilder.forServer(cert, key)
+                        .trustManager(ca)
+                        .clientAuth(ClientAuth.REQUIRE)
+                        .build();
+
+                LOGGER.info("[mTLS] Server SslContext initialized. Mutual TLS active.");
+            } catch (Exception e) {
+                LOGGER.error("[mTLS] Failed to initialize network SSL crypto layer!", e);
+            }
+        } else {
+            if (!dir.exists() && dir.mkdirs()) {
+                LOGGER.info("[mTLS] Created directory config/mtls_server/");
+            }
+            LOGGER.info("[mTLS] No certificates found inside config/mtls_server/. Running in unencrypted pass-through mode.");
+        }
+
+        return mtls$cachedSslContext;
+    }
 
     @Redirect(
             method = "startTcpServerListener",
@@ -33,53 +81,24 @@ public class ServerConnectionListenerMixin {
             )
     )
     private ServerBootstrap onChildHandler(ServerBootstrap bootstrap, ChannelHandler childHandler) {
-        if (childHandler instanceof ChannelInitializer) {
-            @SuppressWarnings("unchecked")
-            ChannelInitializer<Channel> vanillaInitializer = (ChannelInitializer<Channel>) childHandler;
-
-            return bootstrap.childHandler(new ChannelInitializer<Channel>() {
-                @Override
-                protected void initChannel(Channel channel) throws Exception {
-                    if (channel instanceof SocketChannel) {
-                        File dir = new File("config/mtls_server");
-                        File ca = new File(dir, "ca.crt");
-                        File cert = new File(dir, "server.crt");
-                        File key = new File(dir, "server.key");
-
-                        if (ca.exists() && cert.exists() && key.exists()) {
-                            if (!mtls$hasLoggedState) {
-                                LOGGER.info("[mTLS] Mutual TLS verification is active.");
-                                mtls$hasLoggedState = true;
-                            }
-                            try {
-                                SslContext sslContext = SslContextBuilder.forServer(cert, key)
-                                        .trustManager(ca)
-                                        .clientAuth(ClientAuth.REQUIRE)
-                                        .build();
-
-                                channel.pipeline().addFirst("ssl", sslContext.newHandler(channel.alloc()));
-                            } catch (Exception e) {
-                                LOGGER.error("[mTLS] Failed to initialize network crypto layer!");
-                                e.printStackTrace();
-                            }
-                        } else {
-                            if (!mtls$hasLoggedState) {
-                                if (!dir.exists()) {
-                                    dir.mkdirs();
-                                }
-                                LOGGER.info("[mTLS] No certificates found inside config/mtls_server/. Running in unencrypted pass-through mode.");
-                                mtls$hasLoggedState = true;
-                            }
-                        }
-                    }
-
-                    Method initMethod = ChannelInitializer.class.getDeclaredMethod("initChannel", Channel.class);
-                    initMethod.setAccessible(true);
-                    initMethod.invoke(vanillaInitializer, channel);
-                }
-            });
+        if (!(childHandler instanceof ChannelInitializer)) {
+            return bootstrap.childHandler(childHandler);
         }
 
-        return bootstrap.childHandler(childHandler);
+        @SuppressWarnings("unchecked")
+        ChannelInitializer<Channel> vanillaInitializer = (ChannelInitializer<Channel>) childHandler;
+        SslContext sslContext = mtls$getOrBuildSslContext();
+
+        return bootstrap.childHandler(new ChannelInitializer<Channel>() {
+            @Override
+            protected void initChannel(Channel channel) throws Exception {
+                if (sslContext != null && channel instanceof SocketChannel) {
+                    channel.pipeline().addFirst("ssl", sslContext.newHandler(channel.alloc()));
+                }
+
+                // Invoke vanilla initializer via cached reflection method
+                mtls$INIT_CHANNEL_METHOD.invoke(vanillaInitializer, channel);
+            }
+        });
     }
 }

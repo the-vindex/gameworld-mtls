@@ -11,12 +11,12 @@ import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
 @Mixin(ServerStatusPinger.class)
 public class ServerStatusPingerMixin {
     @Inject(method = "pingServer", at = @At("HEAD"))
-    private void onPingServerHead(ServerData serverData, Runnable runnable, Runnable runnable2, CallbackInfo ci) {
+    private void onPingServerHead(ServerData serverData, Runnable serverListUpdater, Runnable stateUpdater, CallbackInfo ci) {
         mTLSContext.CONNECTING_SERVER.set(serverData);
     }
 
     @Inject(method = "pingServer", at = @At("TAIL"))
-    private void onPingServerTail(ServerData serverData, Runnable runnable, Runnable runnable2, CallbackInfo ci) {
+    private void onPingServerTail(ServerData serverData, Runnable serverListUpdater, Runnable stateUpdater, CallbackInfo ci) {
         mTLSContext.CONNECTING_SERVER.remove();
     }
 }

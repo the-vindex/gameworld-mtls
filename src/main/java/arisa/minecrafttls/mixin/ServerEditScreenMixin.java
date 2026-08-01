@@ -20,6 +20,7 @@ public abstract class ServerEditScreenMixin extends Screen {
     @Shadow
     @Final
     private ServerData serverData;
+
     @Shadow
     private EditBox ipEdit;
 
@@ -29,13 +30,14 @@ public abstract class ServerEditScreenMixin extends Screen {
 
     @Inject(method = "init", at = @At("TAIL"))
     private void addMtlsButton(CallbackInfo ci) {
-        int btnWidth = 100;
-        int xPos = this.ipEdit.getX() + this.ipEdit.getWidth() - btnWidth;
-        int yPos = this.ipEdit.getY() + 24;
+        this.ipEdit.setWidth(145);
+
+        int btnX = this.ipEdit.getX() + 150;
+        int btnY = this.ipEdit.getY();
 
         this.addRenderableWidget(Button.builder(
-                Component.literal("mTLS Config"),
-                button -> this.minecraft.setScreen(new mTLSConfigScreen(this, this.serverData))
-        ).bounds(xPos, yPos, btnWidth, 20).build());
+                Component.literal("mTLS"),
+                (button) -> this.minecraft.setScreen(new mTLSConfigScreen(this, this.serverData))
+        ).bounds(btnX, btnY, 50, 20).build());
     }
 }

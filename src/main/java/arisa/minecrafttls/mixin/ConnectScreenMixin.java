@@ -16,12 +16,12 @@ import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
 public class ConnectScreenMixin {
 
     @Inject(method = "startConnecting", at = @At("HEAD"))
-    private static void onStartConnectingHead(Screen parent, Minecraft minecraft, ServerAddress serverAddress, ServerData serverData, boolean isQuickPlay, TransferState transferState, CallbackInfo ci) {
-        mTLSContext.CONNECTING_SERVER.set(serverData);
+    private static void onStartConnectingHead(Screen parent, Minecraft minecraft, ServerAddress hostAndPort, ServerData data, boolean isQuickPlay, TransferState transferState, CallbackInfo ci) {
+        mTLSContext.CONNECTING_SERVER.set(data);
     }
 
     @Inject(method = "startConnecting", at = @At("TAIL"))
-    private static void onStartConnectingTail(Screen parent, Minecraft minecraft, ServerAddress serverAddress, ServerData serverData, boolean isQuickPlay, TransferState transferState, CallbackInfo ci) {
+    private static void onStartConnectingTail(Screen parent, Minecraft minecraft, ServerAddress hostAndPort, ServerData data, boolean isQuickPlay, TransferState transferState, CallbackInfo ci) {
         mTLSContext.CONNECTING_SERVER.remove();
     }
 }
