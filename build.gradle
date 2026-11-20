@@ -186,3 +186,9 @@ idea {
         downloadJavadoc = true
     }
 }
+
+// Reproducible jar: the release asset, the Nix pin and the e2e-tested jar are byte-identical.
+tasks.withType(AbstractArchiveTask).configureEach {
+    preserveFileTimestamps = false
+    reproducibleFileOrder = true
+}
