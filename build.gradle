@@ -9,7 +9,7 @@ version = mod_version
 group = mod_group_id
 
 repositories {
-    mavenLocal()
+    mavenCentral()
 }
 
 base {
@@ -38,6 +38,14 @@ neoForge {
 
             // Comma-separated list of namespaces to load gametests from. Empty = all namespaces.
             systemProperty 'neoforge.enabledGameTestNamespaces', project.mod_id
+        }
+
+        // End-to-end test client (driven by modpack-aeronautics-sky/tests/client-e2e.sh): loads the
+        // built release jar from run-e2e/mods instead of the classes, so the jar itself is tested.
+        e2eClient {
+            client()
+            gameDirectory = project.file('run-e2e')
+            loadedMods = []
         }
 
         server {
@@ -76,7 +84,7 @@ neoForge {
             // Recommended logging level for the console
             // You can set various levels here.
             // Please read: https://stackoverflow.com/questions/2031163/when-to-use-the-different-log-levels
-            logLevel = org.slf4j.event.Level.DEBUG
+            logLevel = org.slf4j.event.Level.INFO
         }
     }
 
@@ -96,6 +104,13 @@ sourceSets.main.resources { srcDir 'src/generated/resources' }
 
 
 dependencies {
+    testImplementation platform('org.junit:junit-bom:5.11.4')
+    testImplementation 'org.junit.jupiter:junit-jupiter'
+    testRuntimeOnly 'org.junit.platform:junit-platform-launcher'
+    // plain JUnit for the classes without Minecraft types; these two come with Minecraft at runtime
+    testRuntimeOnly 'com.google.code.gson:gson:2.11.0'
+    testRuntimeOnly 'org.slf4j:slf4j-api:2.0.9'
+
     // Example mod dependency with JEI
     // The JEI API is declared for compile time use, while the full JEI artifact is used at runtime
     // compileOnly "mezz.jei:jei-${mc_version}-common-api:${jei_version}"
@@ -116,6 +131,12 @@ dependencies {
     // For more info:
     // http://www.gradle.org/docs/current/userguide/artifact_dependencies_tutorial.html
     // http://www.gradle.org/docs/current/userguide/dependency_management.html
+}
+
+test {
+    useJUnitPlatform()
+    systemProperty 'gw.csrOut', layout.buildDirectory.file('test-csr.der').get().asFile.absolutePath
+    testLogging { events 'passed', 'failed', 'skipped'; exceptionFormat 'full' }
 }
 
 // This block of code expands all declared replace properties in the specified resource targets.

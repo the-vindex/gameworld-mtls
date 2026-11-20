@@ -1,17 +1,14 @@
 {
   "required": true,
   "minVersion": "0.8",
-  "package": "arisa.minecrafttls.mixin",
+  "package": "net.gameworld.mtls.mixin",
   "compatibilityLevel": "JAVA_21",
-  "mixins": [
-    "ServerConnectionListenerMixin",
-    "VanillaEncryptionMixin"
-  ],
+  "mixins": [],
   "client": [
+    "ClientboundCustomQueryPacketMixin",
+    "ClientHandshakePacketListenerImplMixin",
     "ConnectionMixin",
     "ConnectScreenMixin",
-    "ServerDataMixin",
-    "ServerEditScreenMixin",
     "ServerStatusPingerMixin"
   ],
   "injectors": {

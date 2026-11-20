@@ -1,6 +1,6 @@
-package arisa.minecrafttls.mixin;
+package net.gameworld.mtls.mixin;
 
-import arisa.minecrafttls.mTLSContext;
+import net.gameworld.mtls.GwContext;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.screens.ConnectScreen;
 import net.minecraft.client.gui.screens.Screen;
@@ -12,16 +12,18 @@ import org.spongepowered.asm.mixin.injection.At;
 import org.spongepowered.asm.mixin.injection.Inject;
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
 
+/** From MinecraftTLS: the "Server Connector" thread inherits the entry being joined. */
 @Mixin(ConnectScreen.class)
 public class ConnectScreenMixin {
-
     @Inject(method = "startConnecting", at = @At("HEAD"))
-    private static void onStartConnectingHead(Screen parent, Minecraft minecraft, ServerAddress hostAndPort, ServerData data, boolean isQuickPlay, TransferState transferState, CallbackInfo ci) {
-        mTLSContext.CONNECTING_SERVER.set(data);
+    private static void gw$head(Screen parent, Minecraft mc, ServerAddress address, ServerData data, boolean quickPlay,
+                                TransferState transfer, CallbackInfo ci) {
+        GwContext.CONNECTING_SERVER.set(data);
     }
 
     @Inject(method = "startConnecting", at = @At("TAIL"))
-    private static void onStartConnectingTail(Screen parent, Minecraft minecraft, ServerAddress hostAndPort, ServerData data, boolean isQuickPlay, TransferState transferState, CallbackInfo ci) {
-        mTLSContext.CONNECTING_SERVER.remove();
+    private static void gw$tail(Screen parent, Minecraft mc, ServerAddress address, ServerData data, boolean quickPlay,
+                                TransferState transfer, CallbackInfo ci) {
+        GwContext.CONNECTING_SERVER.remove();
     }
 }
